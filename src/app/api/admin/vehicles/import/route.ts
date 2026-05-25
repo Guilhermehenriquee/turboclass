@@ -9,6 +9,7 @@ export const dynamic = "force-dynamic";
 
 function revalidateInventory() {
   revalidatePath("/");
+  revalidatePath("/comprar");
   revalidatePath("/estoque");
 }
 

@@ -4,6 +4,11 @@ function normalize(value: string | undefined) {
   return value?.trim().toLowerCase();
 }
 
+function asNumber(value: string | undefined) {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : undefined;
+}
+
 function matchesPriceRange(vehicle: Vehicle, priceRange: string | undefined) {
   const range = normalize(priceRange);
 
@@ -37,10 +42,22 @@ export function filterVehicleList(vehicles: Vehicle[], params: InventoryFilters)
   const condition = normalize(params.condition);
   const offer = normalize(params.offer);
   const location = normalize(params.location);
+  const city = normalize(params.city);
+  const state = normalize(params.state);
+  const engineType = normalize(params.engineType);
+  const preparation = normalize(params.preparation);
+  const transmission = normalize(params.transmission);
+  const fuel = normalize(params.fuel);
+  const businessType = normalize(params.businessType);
+  const status = normalize(params.status);
+  const minPrice = asNumber(params.minPrice);
+  const maxPrice = asNumber(params.maxPrice);
+  const minYear = asNumber(params.minYear);
+  const maxYear = asNumber(params.maxYear);
 
-  return vehicles.filter((vehicle) => {
+  const filtered = vehicles.filter((vehicle) => {
     const searchable =
-      `${vehicle.name} ${vehicle.make} ${vehicle.model} ${vehicle.location} ${vehicle.turboSpec} ${vehicle.tags
+      `${vehicle.name} ${vehicle.make} ${vehicle.model} ${vehicle.version} ${vehicle.location} ${vehicle.engineType} ${vehicle.preparation} ${vehicle.turboSpec} ${vehicle.tags
         .map((tag) => tag.label)
         .join(" ")}`.toLowerCase();
     const matchesQuery = query ? searchable.includes(query) : true;
@@ -49,6 +66,18 @@ export function filterVehicleList(vehicles: Vehicle[], params: InventoryFilters)
     const matchesCondition = condition ? vehicle.condition === condition : true;
     const matchesOffer = offer ? vehicle.featuredOffer : true;
     const matchesLocation = location ? vehicle.location.toLowerCase().includes(location) : true;
+    const matchesCity = city ? vehicle.city.toLowerCase().includes(city) : true;
+    const matchesState = state ? vehicle.state.toLowerCase() === state : true;
+    const matchesEngine = engineType ? vehicle.engineType.toLowerCase() === engineType : true;
+    const matchesPreparation = preparation ? vehicle.preparation.toLowerCase() === preparation : true;
+    const matchesTransmission = transmission ? vehicle.transmission.toLowerCase() === transmission : true;
+    const matchesFuel = fuel ? vehicle.fuel.toLowerCase() === fuel : true;
+    const matchesBusiness = businessType ? vehicle.businessType === businessType : true;
+    const matchesStatus = status ? vehicle.status === status : true;
+    const matchesMinPrice = minPrice === undefined ? true : vehicle.price >= minPrice;
+    const matchesMaxPrice = maxPrice === undefined ? true : vehicle.price <= maxPrice;
+    const matchesMinYear = minYear === undefined ? true : vehicle.year >= minYear;
+    const matchesMaxYear = maxYear === undefined ? true : vehicle.year <= maxYear;
 
     return (
       matchesQuery &&
@@ -57,7 +86,35 @@ export function filterVehicleList(vehicles: Vehicle[], params: InventoryFilters)
       matchesCondition &&
       matchesOffer &&
       matchesLocation &&
+      matchesCity &&
+      matchesState &&
+      matchesEngine &&
+      matchesPreparation &&
+      matchesTransmission &&
+      matchesFuel &&
+      matchesBusiness &&
+      matchesStatus &&
+      matchesMinPrice &&
+      matchesMaxPrice &&
+      matchesMinYear &&
+      matchesMaxYear &&
       matchesPriceRange(vehicle, params.price)
     );
   });
+
+  switch (params.sort) {
+    case "menor-preco":
+      return filtered.sort((a, b) => a.price - b.price);
+    case "maior-preco":
+      return filtered.sort((a, b) => b.price - a.price);
+    case "ano-mais-novo":
+      return filtered.sort((a, b) => b.year - a.year);
+    case "ano-mais-antigo":
+      return filtered.sort((a, b) => a.year - b.year);
+    case "mais-relevantes":
+      return filtered.sort((a, b) => Number(b.featuredOffer) - Number(a.featuredOffer));
+    case "mais-recentes":
+    default:
+      return filtered;
+  }
 }

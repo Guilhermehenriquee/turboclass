@@ -4,7 +4,7 @@ import type { Sql, TransactionSql } from "postgres";
 import { inventory as seedInventory } from "@/data/inventory";
 import { getSql, hasDatabaseUrl } from "@/lib/database";
 import { filterVehicleList } from "@/lib/inventory-filter";
-import type { InventoryFilters, Vehicle, VehicleTag } from "@/lib/inventory-types";
+import type { InventoryFilters, Vehicle, VehicleBusinessType, VehicleStatus, VehicleTag, VehicleUpgrade } from "@/lib/inventory-types";
 
 type RawRecord = Record<string, unknown>;
 type SqlClient = Sql | TransactionSql;
@@ -30,6 +30,7 @@ type VehicleRow = {
   badge: string;
   turbo_badge: string | null;
   tags: unknown;
+  details: unknown;
 };
 
 export class InventoryStoreError extends Error {
@@ -96,6 +97,14 @@ function toNumber(value: unknown, field: string, min: number, max: number) {
   return Math.round(numberValue);
 }
 
+function toOptionalNumber(value: unknown, fallback: number, field: string, min: number, max: number) {
+  if (value === undefined || value === null || value === "") {
+    return fallback;
+  }
+
+  return toNumber(value, field, min, max);
+}
+
 function normalizeCondition(value: unknown): Vehicle["condition"] {
   const condition = sanitizeText(value, "condition", 24).toLowerCase();
 
@@ -104,6 +113,31 @@ function normalizeCondition(value: unknown): Vehicle["condition"] {
   }
 
   throw new InventoryStoreError("Condicao deve ser novo, seminovo ou usado.");
+}
+
+function normalizeStatus(value: unknown): VehicleStatus {
+  const status = sanitizeOptionalText(value, "status", 32).toLowerCase();
+
+  if (status === "reservado" || status === "vendido") {
+    return status;
+  }
+
+  return "disponivel";
+}
+
+function normalizeBusinessType(value: unknown): VehicleBusinessType {
+  const businessType = sanitizeOptionalText(value, "businessType", 40).toLowerCase();
+
+  if (
+    businessType === "aceita-troca" ||
+    businessType === "somente-venda" ||
+    businessType === "financia" ||
+    businessType === "consignado"
+  ) {
+    return businessType;
+  }
+
+  return "somente-venda";
 }
 
 function slugify(value: string) {
@@ -124,6 +158,25 @@ function normalizeImagePath(value: unknown) {
   }
 
   throw new InventoryStoreError("Imagem deve ser um caminho local em public, por exemplo /vehicle-hatch.png.");
+}
+
+function normalizeGallery(value: unknown, mainImage: string) {
+  if (!Array.isArray(value)) {
+    return [mainImage];
+  }
+
+  const gallery = value
+    .map((item) => {
+      try {
+        return normalizeImagePath(item);
+      } catch {
+        return "";
+      }
+    })
+    .filter(Boolean)
+    .slice(0, 12);
+
+  return gallery.length ? gallery : [mainImage];
 }
 
 function normalizeTagVariant(value: unknown, hasModifications: boolean): VehicleTag["variant"] {
@@ -173,6 +226,49 @@ function normalizeTags(value: unknown, hasModifications: boolean): VehicleTag[] 
   return tags.length ? tags : fallback;
 }
 
+function normalizeUpgrades(value: unknown): VehicleUpgrade[] {
+  if (typeof value === "string") {
+    return value
+      .split(/\n/g)
+      .map((item) => item.trim())
+      .filter(Boolean)
+      .map((item) => {
+        const [label, ...rest] = item.split(":");
+        return {
+          label: sanitizeText(label, "upgrade.label", 48),
+          value: sanitizeText(rest.join(":") || "Sob consulta", "upgrade.value", 120),
+        };
+      })
+      .slice(0, 18);
+  }
+
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value
+    .filter(isRecord)
+    .map((upgrade) => ({
+      label: sanitizeText(upgrade.label, "upgrade.label", 48),
+      value: sanitizeText(upgrade.value, "upgrade.value", 120),
+    }))
+    .slice(0, 18);
+}
+
+function normalizeSeller(value: unknown) {
+  if (!isRecord(value)) {
+    return undefined;
+  }
+
+  return {
+    name: sanitizeOptionalText(value.name, "seller.name", 80) || undefined,
+    whatsapp: sanitizeOptionalText(value.whatsapp, "seller.whatsapp", 32) || undefined,
+    email: sanitizeOptionalText(value.email, "seller.email", 120) || undefined,
+    city: sanitizeOptionalText(value.city, "seller.city", 64) || undefined,
+    state: sanitizeOptionalText(value.state, "seller.state", 2).toUpperCase() || undefined,
+  };
+}
+
 function makeUniqueSlug(slug: string, existingSlugs: Set<string>) {
   let nextSlug = slug || `veiculo-${Date.now().toString(36)}`;
   let suffix = 2;
@@ -200,6 +296,10 @@ export function normalizeVehicleInput(value: unknown): Vehicle {
   const make = sanitizeText(value.make, "make", 64);
   const model = sanitizeText(value.model, "model", 72);
   const slugBase = sanitizeOptionalText(value.slug, "slug", 96) || `${make} ${model} ${name}`;
+  const image = normalizeImagePath(value.image);
+  const location = sanitizeText(value.location, "location", 96);
+  const [fallbackCity = "", fallbackState = ""] = location.split(",").map((item) => item.trim());
+  const year = toNumber(value.year, "year", 1950, 2100);
 
   return {
     id: sanitizeOptionalText(value.id, "id", 64) || generateVehicleId(),
@@ -207,28 +307,46 @@ export function normalizeVehicleInput(value: unknown): Vehicle {
     name,
     make,
     model,
+    version: sanitizeOptionalText(value.version, "version", 96) || model,
     condition: normalizeCondition(value.condition),
     featuredOffer: toBoolean(value.featuredOffer),
     turboSpec: sanitizeText(value.turboSpec, "turboSpec", 180),
     hasModifications,
-    year: toNumber(value.year, "year", 1950, 2100),
+    year,
+    yearModel: toOptionalNumber(value.yearModel, year, "yearModel", 1950, 2100),
     price: toNumber(value.price, "price", 0, 100000000),
     monthlyPayment: toNumber(value.monthlyPayment, "monthlyPayment", 0, 10000000),
     mileage: toNumber(value.mileage, "mileage", 0, 5000000),
     transmission: sanitizeText(value.transmission, "transmission", 48),
     fuel: sanitizeText(value.fuel, "fuel", 48),
-    location: sanitizeText(value.location, "location", 96),
-    image: normalizeImagePath(value.image),
+    location,
+    city: sanitizeOptionalText(value.city, "city", 64) || fallbackCity,
+    state: (sanitizeOptionalText(value.state, "state", 2) || fallbackState).toUpperCase(),
+    image,
+    gallery: normalizeGallery(value.gallery, image),
     badge: sanitizeText(value.badge, "badge", 48),
     turboBadge: sanitizeOptionalText(value.turboBadge, "turboBadge", 48) || undefined,
+    engineType: sanitizeOptionalText(value.engineType, "engineType", 48) || (hasModifications ? "Turbo" : "Original"),
+    preparation: sanitizeOptionalText(value.preparation, "preparation", 64) || (hasModifications ? "Projeto completo" : "Original"),
+    power: sanitizeOptionalText(value.power, "power", 48) || "Sob consulta",
+    color: sanitizeOptionalText(value.color, "color", 48) || "Sob consulta",
+    plateFinal: sanitizeOptionalText(value.plateFinal, "plateFinal", 8) || "Sob consulta",
+    documentation: sanitizeOptionalText(value.documentation, "documentation", 96) || "Documentacao informada pelo anunciante",
+    businessType: normalizeBusinessType(value.businessType),
+    status: normalizeStatus(value.status),
+    description: sanitizeOptionalText(value.description, "description", 1200) || sanitizeText(value.turboSpec, "turboSpec", 180),
+    upgrades: normalizeUpgrades(value.upgrades),
+    seller: normalizeSeller(value.seller),
+    views: toOptionalNumber(value.views, 0, "views", 0, 100000000),
     tags: normalizeTags(value.tags, hasModifications),
   };
 }
 
 function rowToVehicle(row: VehicleRow): Vehicle {
   const tags = typeof row.tags === "string" ? JSON.parse(row.tags) : row.tags;
+  const details = isRecord(row.details) ? row.details : typeof row.details === "string" ? JSON.parse(row.details) : {};
 
-  return {
+  return normalizeVehicleInput({
     id: row.id,
     slug: row.slug,
     name: row.name,
@@ -249,6 +367,29 @@ function rowToVehicle(row: VehicleRow): Vehicle {
     badge: row.badge,
     turboBadge: row.turbo_badge ?? undefined,
     tags: normalizeTags(tags, row.has_modifications),
+    ...details,
+  });
+}
+
+function vehicleDetails(vehicle: Vehicle) {
+  return {
+    version: vehicle.version,
+    yearModel: vehicle.yearModel,
+    city: vehicle.city,
+    state: vehicle.state,
+    gallery: vehicle.gallery,
+    engineType: vehicle.engineType,
+    preparation: vehicle.preparation,
+    power: vehicle.power,
+    color: vehicle.color,
+    plateFinal: vehicle.plateFinal,
+    documentation: vehicle.documentation,
+    businessType: vehicle.businessType,
+    status: vehicle.status,
+    description: vehicle.description,
+    upgrades: vehicle.upgrades,
+    seller: vehicle.seller,
+    views: vehicle.views,
   };
 }
 
@@ -283,10 +424,12 @@ async function ensureInventorySchema() {
           badge text not null,
           turbo_badge text,
           tags jsonb not null default '[]'::jsonb,
+          details jsonb not null default '{}'::jsonb,
           created_at timestamptz not null default now(),
           updated_at timestamptz not null default now()
         )
       `;
+      await sql`alter table vehicles add column if not exists details jsonb not null default '{}'::jsonb`;
       await sql`create index if not exists vehicles_condition_idx on vehicles (condition)`;
       await sql`create index if not exists vehicles_make_idx on vehicles (make)`;
       await sql`create index if not exists vehicles_featured_idx on vehicles (featured_offer)`;
@@ -298,20 +441,21 @@ async function ensureInventorySchema() {
 
 async function insertVehicle(sql: SqlClient, vehicle: Vehicle, upsert: boolean) {
   const tags = JSON.stringify(vehicle.tags);
+  const details = JSON.stringify(vehicleDetails(vehicle));
 
   if (upsert) {
     await sql`
       insert into vehicles (
         id, slug, name, make, model, condition, featured_offer, turbo_spec,
         has_modifications, year, price, monthly_payment, mileage, transmission,
-        fuel, location, image, badge, turbo_badge, tags
+        fuel, location, image, badge, turbo_badge, tags, details
       )
       values (
         ${vehicle.id}, ${vehicle.slug}, ${vehicle.name}, ${vehicle.make}, ${vehicle.model},
         ${vehicle.condition}, ${vehicle.featuredOffer}, ${vehicle.turboSpec}, ${vehicle.hasModifications},
         ${vehicle.year}, ${vehicle.price}, ${vehicle.monthlyPayment}, ${vehicle.mileage},
         ${vehicle.transmission}, ${vehicle.fuel}, ${vehicle.location}, ${vehicle.image},
-        ${vehicle.badge}, ${vehicle.turboBadge ?? null}, ${tags}::jsonb
+        ${vehicle.badge}, ${vehicle.turboBadge ?? null}, ${tags}::jsonb, ${details}::jsonb
       )
       on conflict (id) do update set
         slug = excluded.slug,
@@ -333,6 +477,7 @@ async function insertVehicle(sql: SqlClient, vehicle: Vehicle, upsert: boolean) 
         badge = excluded.badge,
         turbo_badge = excluded.turbo_badge,
         tags = excluded.tags,
+        details = excluded.details,
         updated_at = now()
     `;
     return;
@@ -342,14 +487,14 @@ async function insertVehicle(sql: SqlClient, vehicle: Vehicle, upsert: boolean) 
     insert into vehicles (
       id, slug, name, make, model, condition, featured_offer, turbo_spec,
       has_modifications, year, price, monthly_payment, mileage, transmission,
-      fuel, location, image, badge, turbo_badge, tags
+      fuel, location, image, badge, turbo_badge, tags, details
     )
     values (
       ${vehicle.id}, ${vehicle.slug}, ${vehicle.name}, ${vehicle.make}, ${vehicle.model},
       ${vehicle.condition}, ${vehicle.featuredOffer}, ${vehicle.turboSpec}, ${vehicle.hasModifications},
       ${vehicle.year}, ${vehicle.price}, ${vehicle.monthlyPayment}, ${vehicle.mileage},
       ${vehicle.transmission}, ${vehicle.fuel}, ${vehicle.location}, ${vehicle.image},
-      ${vehicle.badge}, ${vehicle.turboBadge ?? null}, ${tags}::jsonb
+      ${vehicle.badge}, ${vehicle.turboBadge ?? null}, ${tags}::jsonb, ${details}::jsonb
     )
   `;
 }
@@ -361,7 +506,7 @@ async function readDatabaseInventory() {
     select
       id, slug, name, make, model, condition, featured_offer, turbo_spec,
       has_modifications, year, price, monthly_payment, mileage, transmission,
-      fuel, location, image, badge, turbo_badge, tags
+      fuel, location, image, badge, turbo_badge, tags, details
     from vehicles
     order by featured_offer desc, created_at desc, name asc
   `;

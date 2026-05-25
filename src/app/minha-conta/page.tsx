@@ -18,7 +18,7 @@ const accountActions = [
     icon: Database,
     title: "Gerenciar estoque",
     text: "Cadastre carros, importe lotes e migre anuncios para o banco.",
-    href: "/admin/veiculos",
+    href: "/admin",
   },
   {
     icon: ShieldCheck,
@@ -60,7 +60,7 @@ export default function MinhaContaPage() {
               O painel de estoque usa token de administrador. O fluxo comercial segue pelo
               WhatsApp para anuncios de clientes.
             </p>
-            <Link href="/admin/veiculos" className="primary-button">
+            <Link href="/admin" className="primary-button">
               Abrir painel
               <BadgeCheck size={18} aria-hidden="true" />
             </Link>

@@ -7,6 +7,7 @@ type FormValues = {
   name: string;
   make: string;
   model: string;
+  version: string;
   condition: "novo" | "seminovo" | "usado";
   featuredOffer: boolean;
   turboSpec: string;
@@ -18,9 +19,20 @@ type FormValues = {
   transmission: string;
   fuel: string;
   location: string;
+  city: string;
+  state: string;
   image: string;
   badge: string;
   turboBadge: string;
+  engineType: string;
+  preparation: string;
+  power: string;
+  color: string;
+  plateFinal: string;
+  businessType: "aceita-troca" | "somente-venda" | "financia" | "consignado";
+  status: "disponivel" | "reservado" | "vendido";
+  description: string;
+  upgrades: string;
   tags: string;
 };
 
@@ -34,6 +46,7 @@ const initialForm: FormValues = {
   name: "",
   make: "Volkswagen",
   model: "Hatch",
+  version: "",
   condition: "seminovo",
   featuredOffer: false,
   turboSpec: "Turbo de fabrica com manutencao em dia",
@@ -45,10 +58,21 @@ const initialForm: FormValues = {
   transmission: "Automatico",
   fuel: "Flex",
   location: "Sao Paulo, SP",
+  city: "Sao Paulo",
+  state: "SP",
   image: "/vehicle-hatch.png",
   badge: "Novo anuncio",
   turboBadge: "",
-  tags: "Procedencia conferida:normal\nLaudo aprovado:normal",
+  engineType: "Turbo",
+  preparation: "Original",
+  power: "Sob consulta",
+  color: "Sob consulta",
+  plateFinal: "Sob consulta",
+  businessType: "somente-venda",
+  status: "disponivel",
+  description: "",
+  upgrades: "Motorizacao:Sob consulta\nAcerto:Sob consulta",
+  tags: "Procedencia conferida:normal\nDisponivel:normal",
 };
 
 function parseTags(value: string) {
@@ -61,6 +85,20 @@ function parseTags(value: string) {
       return {
         label,
         variant: variant === "modification" ? "modification" : "normal",
+      };
+    });
+}
+
+function parseUpgrades(value: string) {
+  return value
+    .split(/\n|,/g)
+    .map((item) => item.trim())
+    .filter(Boolean)
+    .map((item) => {
+      const [label, ...rest] = item.split(":");
+      return {
+        label: label.trim(),
+        value: rest.join(":").trim() || "Sob consulta",
       };
     });
 }
@@ -120,9 +158,10 @@ export function AdminVehicleManager({ initialTotal }: { initialTotal: number }) 
         monthlyPayment: Number(form.monthlyPayment),
         mileage: Number(form.mileage),
         tags: parseTags(form.tags),
+        upgrades: parseUpgrades(form.upgrades),
       });
       const slug = !Array.isArray(result.data) && result.data?.slug ? result.data.slug : "novo-veiculo";
-      setMessage(`Veiculo cadastrado com sucesso: /estoque/${slug}`);
+      setMessage(`Veiculo cadastrado com sucesso: /comprar/${slug}`);
       setForm(initialForm);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Erro ao cadastrar veiculo.");
@@ -208,6 +247,10 @@ export function AdminVehicleManager({ initialTotal }: { initialTotal: number }) 
               <input value={form.model} onChange={(event) => updateField("model", event.target.value)} required />
             </label>
             <label>
+              Versao
+              <input value={form.version} onChange={(event) => updateField("version", event.target.value)} placeholder="2.0 Turbo Stage 2" />
+            </label>
+            <label>
               Condicao
               <select value={form.condition} onChange={(event) => updateField("condition", event.target.value as FormValues["condition"])}>
                 <option value="novo">Novo</option>
@@ -249,6 +292,14 @@ export function AdminVehicleManager({ initialTotal }: { initialTotal: number }) 
               <input value={form.location} onChange={(event) => updateField("location", event.target.value)} required />
             </label>
             <label>
+              Cidade
+              <input value={form.city} onChange={(event) => updateField("city", event.target.value)} required />
+            </label>
+            <label>
+              Estado
+              <input value={form.state} onChange={(event) => updateField("state", event.target.value)} maxLength={2} required />
+            </label>
+            <label>
               Imagem em public
               <input value={form.image} onChange={(event) => updateField("image", event.target.value)} required />
             </label>
@@ -260,11 +311,58 @@ export function AdminVehicleManager({ initialTotal }: { initialTotal: number }) 
               Selo turbo
               <input value={form.turboBadge} onChange={(event) => updateField("turboBadge", event.target.value)} />
             </label>
+            <label>
+              Motorizacao
+              <input value={form.engineType} onChange={(event) => updateField("engineType", event.target.value)} required />
+            </label>
+            <label>
+              Preparacao
+              <input value={form.preparation} onChange={(event) => updateField("preparation", event.target.value)} required />
+            </label>
+            <label>
+              Potencia
+              <input value={form.power} onChange={(event) => updateField("power", event.target.value)} />
+            </label>
+            <label>
+              Cor
+              <input value={form.color} onChange={(event) => updateField("color", event.target.value)} />
+            </label>
+            <label>
+              Final da placa
+              <input value={form.plateFinal} onChange={(event) => updateField("plateFinal", event.target.value)} />
+            </label>
+            <label>
+              Tipo de negocio
+              <select value={form.businessType} onChange={(event) => updateField("businessType", event.target.value as FormValues["businessType"])}>
+                <option value="aceita-troca">Aceita troca</option>
+                <option value="somente-venda">Somente venda</option>
+                <option value="financia">Financia</option>
+                <option value="consignado">Consignado</option>
+              </select>
+            </label>
+            <label>
+              Status
+              <select value={form.status} onChange={(event) => updateField("status", event.target.value as FormValues["status"])}>
+                <option value="disponivel">Disponivel</option>
+                <option value="reservado">Reservado</option>
+                <option value="vendido">Vendido</option>
+              </select>
+            </label>
           </div>
 
           <label>
             Descricao turbo/setup
             <textarea value={form.turboSpec} onChange={(event) => updateField("turboSpec", event.target.value)} required />
+          </label>
+
+          <label>
+            Descricao do anuncio
+            <textarea value={form.description} onChange={(event) => updateField("description", event.target.value)} required />
+          </label>
+
+          <label>
+            Preparacao e upgrades
+            <textarea value={form.upgrades} onChange={(event) => updateField("upgrades", event.target.value)} required />
           </label>
 
           <label>

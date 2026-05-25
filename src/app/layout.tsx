@@ -4,11 +4,11 @@ import "./globals.css";
 export const metadata: Metadata = {
   metadataBase: new URL("https://turboclass.com.br"),
   title: {
-    default: "TurboClass - Veiculos premium e performance",
+    default: "TurboClass - Marketplace de carros turbo e preparados",
     template: "%s | TurboClass",
   },
   description:
-    "Compre, venda e anuncie veiculos turbo, premium e preparados com curadoria para gearheads.",
+    "Compre, venda e anuncie carros turbo, preparados, swaps, esportivos, premium e projetos especiais no marketplace gearhead da TurboClass.",
   icons: {
     icon: [
       { url: "/icon/turboclass-32.png", sizes: "32x32", type: "image/png" },
@@ -21,7 +21,7 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title: "TurboClass",
-    description: "Marketplace automotivo premium para turbos, setups e estoque selecionado.",
+    description: "Marketplace automotivo premium para carros turbo, preparados, swaps e projetos especiais.",
     url: "https://turboclass.com.br",
     siteName: "TurboClass",
     images: [

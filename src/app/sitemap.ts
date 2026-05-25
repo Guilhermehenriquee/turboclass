@@ -13,13 +13,19 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 1,
     },
     {
-      url: `${baseUrl}/estoque`,
+      url: `${baseUrl}/comprar`,
       lastModified: now,
       changeFrequency: "hourly",
       priority: 0.9,
     },
+    ...["vender", "financiamento", "sobre", "diferenciais", "contato"].map((route) => ({
+      url: `${baseUrl}/${route}`,
+      lastModified: now,
+      changeFrequency: "weekly" as const,
+      priority: 0.7,
+    })),
     ...inventory.map((vehicle) => ({
-      url: `${baseUrl}/estoque/${vehicle.slug}`,
+      url: `${baseUrl}/comprar/${vehicle.slug}`,
       lastModified: now,
       changeFrequency: "daily" as const,
       priority: 0.8,

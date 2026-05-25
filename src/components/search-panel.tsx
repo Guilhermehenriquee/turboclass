@@ -8,9 +8,9 @@ type SearchPanelProps = {
 };
 
 const tabs = [
-  { id: "comprar", label: "Comprar", href: "/estoque" },
-  { id: "seminovos", label: "Seminovos", href: "/estoque?condition=seminovo" },
-  { id: "ofertas", label: "Ofertas", href: "/estoque?offer=turbo" },
+  { id: "comprar", label: "Comprar", href: "/comprar" },
+  { id: "seminovos", label: "Seminovos", href: "/comprar?condition=seminovo" },
+  { id: "ofertas", label: "Ofertas", href: "/comprar?offer=turbo" },
 ] as const;
 
 export function SearchPanel({ compact = false, activeTab = "comprar" }: SearchPanelProps) {
@@ -29,13 +29,13 @@ export function SearchPanel({ compact = false, activeTab = "comprar" }: SearchPa
           <span className="eyebrow">Busca rapida</span>
           <h2>{compact ? "Encontre seu TurboClass" : "Busque turbos, setups e projetos"}</h2>
         </div>
-        <a href="/estoque" className="advanced-link">
+        <a href="/comprar" className="advanced-link">
           <SlidersHorizontal size={16} aria-hidden="true" />
           Avancada
         </a>
       </div>
 
-      <form className="search-form" action="/estoque">
+      <form className="search-form" action="/comprar">
         <label className="field">
           <span>Palavra-chave</span>
           <input name="q" type="search" placeholder="Modelo, versao ou cidade" />
@@ -54,7 +54,7 @@ export function SearchPanel({ compact = false, activeTab = "comprar" }: SearchPa
         </label>
 
         <label className="field">
-          <span>Carroceria</span>
+          <span>Modelo</span>
           <select name="body" defaultValue="">
             <option value="">Todos os modelos</option>
             {searchOptions.models.slice(1).map((model) => (
@@ -66,24 +66,24 @@ export function SearchPanel({ compact = false, activeTab = "comprar" }: SearchPa
         </label>
 
         <label className="field">
-          <span>Preco</span>
-          <select name="price" defaultValue="">
-            <option value="">Faixa de preco</option>
-            {searchOptions.prices.map((price) => (
-              <option key={price} value={price}>
-                {price}
+          <span>Estado</span>
+          <select name="state" defaultValue="">
+            <option value="">Todo o Brasil</option>
+            {searchOptions.states.slice(1).map((state) => (
+              <option key={state} value={state}>
+                {state}
               </option>
             ))}
           </select>
         </label>
 
         <label className="field">
-          <span>Localizacao</span>
-          <select name="location" defaultValue="">
-            <option value="">Todo o Brasil</option>
-            {searchOptions.locations.slice(1).map((location) => (
-              <option key={location} value={location}>
-                {location}
+          <span>Preco ate</span>
+          <select name="maxPrice" defaultValue="">
+            <option value="">Qualquer valor</option>
+            {[100000, 200000, 350000, 500000].map((price) => (
+              <option key={price} value={price}>
+                Ate R$ {price.toLocaleString("pt-BR")}
               </option>
             ))}
           </select>

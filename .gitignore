@@ -5,6 +5,7 @@ dist/
 build/
 *.tsbuildinfo
 .next-dev.*.log
+.next-dev.pid
 .next-dev-*.pid
 .env*
 !.env.example

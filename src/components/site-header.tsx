@@ -1,13 +1,14 @@
 import Link from "next/link";
 import { MapPin, Menu, Phone, Search, UserRound } from "lucide-react";
-import { WHATSAPP_ANNOUNCE_URL } from "@/lib/links";
+import { WHATSAPP_SELL_URL } from "@/lib/links";
 
 const navigation = [
-  { href: "/estoque", label: "Comprar" },
-  { href: "#vender", label: "Vender" },
-  { href: "#financiamento", label: "Financiamento" },
-  { href: "#diferenciais", label: "Diferenciais" },
-  { href: "#sobre", label: "Sobre" },
+  { href: "/comprar", label: "Comprar" },
+  { href: "/vender", label: "Vender" },
+  { href: "/financiamento", label: "Financiamento" },
+  { href: "/diferenciais", label: "Diferenciais" },
+  { href: "/sobre", label: "Sobre" },
+  { href: "/contato", label: "Contato" },
 ];
 
 export function SiteHeader() {
@@ -29,20 +30,20 @@ export function SiteHeader() {
       </nav>
 
       <div className="header-actions">
-        <Link href="#unidades" className="ghost-action">
+        <Link href="/contato#atendimento" className="ghost-action">
           <MapPin size={17} aria-hidden="true" />
-          <span>Unidades</span>
+          <span>Atendimento</span>
         </Link>
-        <Link href="/estoque" className="icon-action" aria-label="Buscar veiculos">
+        <Link href="/comprar" className="icon-action" aria-label="Buscar veiculos">
           <Search size={18} aria-hidden="true" />
         </Link>
         <Link href="/minha-conta" className="ghost-action compact">
           <UserRound size={17} aria-hidden="true" />
           <span>Minha conta</span>
         </Link>
-        <Link href={WHATSAPP_ANNOUNCE_URL} className="contact-action" target="_blank" rel="noreferrer">
+        <Link href={WHATSAPP_SELL_URL} className="contact-action" target="_blank" rel="noreferrer">
           <Phone size={17} aria-hidden="true" />
-          <span>Fale conosco</span>
+          <span>Anunciar meu carro</span>
         </Link>
         <details className="mobile-nav">
           <summary aria-label="Abrir menu">

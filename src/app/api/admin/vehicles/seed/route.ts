@@ -31,6 +31,7 @@ export async function POST(request: Request) {
   try {
     const vehicles = await seedInitialInventory();
     revalidatePath("/");
+    revalidatePath("/comprar");
     revalidatePath("/estoque");
 
     return Response.json({ data: vehicles, total: vehicles.length });

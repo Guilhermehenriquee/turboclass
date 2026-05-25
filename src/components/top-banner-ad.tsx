@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { ArrowLeft, ArrowRight, Megaphone, Zap } from "lucide-react";
 import { useEffect, useState } from "react";
-import { WHATSAPP_ANNOUNCE_URL } from "@/lib/links";
 
 const adSlides = [
   {
@@ -18,7 +17,7 @@ const adSlides = [
   },
   {
     kicker: "Curadoria TurboClass",
-    title: "Fotos, setup, laudo e atendimento alinhados para converter melhor",
+    title: "Fotos, setup, documentos e atendimento alinhados para converter melhor",
     cta: "Falar com especialista",
   },
 ];
@@ -57,7 +56,7 @@ export function TopBannerAd() {
         <strong>{activeSlide.title}</strong>
       </div>
 
-      <Link href={WHATSAPP_ANNOUNCE_URL} className="ad-cta" target="_blank" rel="noreferrer">
+      <Link href="/vender" className="ad-cta">
         <Megaphone size={17} aria-hidden="true" />
         {activeSlide.cta}
         <ArrowRight size={17} aria-hidden="true" />

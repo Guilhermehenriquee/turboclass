@@ -1,6 +1,7 @@
 # TurboClass
 
-Website em Next.js App Router com TypeScript para a presenca digital da TurboClass.
+Marketplace automotivo premium em Next.js App Router com TypeScript para carros turbo,
+preparados, swaps, esportivos, premium e projetos especiais.
 
 ## Stack
 
@@ -8,6 +9,7 @@ Website em Next.js App Router com TypeScript para a presenca digital da TurboCla
 - React 19
 - TypeScript estrito
 - Postgres opcional para estoque operacional
+- Captacao de leads para anuncio, contato, interesse e financiamento
 - CSS global sem runtime pesado de UI
 - Assets locais em `public/`
 
@@ -23,12 +25,29 @@ public/icon/             Favicon e icones do site
 public/logo/             Logo da TurboClass
 ```
 
+## Rotas principais
+
+```text
+/                         Home de conversao
+/comprar                  Estoque com filtros avancados
+/comprar/[slug]           Pagina individual do veiculo
+/vender                   Captacao de novos anuncios
+/financiamento            Captacao de simulacao
+/sobre                    Historia e posicionamento
+/diferenciais             Proposta de valor do marketplace
+/contato                  Atendimento, Instagram e formulario
+/admin                    Dashboard operacional
+/admin/veiculos           Cadastro/importacao/migracao de veiculos
+/admin/leads              Lista de interessados captados
+/admin/anuncios-pendentes Area preparada para aprovacao
+```
+
 ## Estoque e banco
 
 O site le os carros por `src/lib/inventory-store.ts`.
 
 - Sem `DATABASE_URL`: usa o estoque inicial e, em desenvolvimento, permite gravar em `data/inventory.local.json`.
-- Com `DATABASE_URL`: cria a tabela `vehicles` automaticamente no primeiro uso e grava os carros no Postgres.
+- Com `DATABASE_URL`: cria as tabelas `vehicles` e `leads` automaticamente no primeiro uso e grava dados no Postgres.
 - O painel protegido fica em `/admin/veiculos`.
 - Para liberar escrita, configure `ADMIN_TOKEN` com pelo menos 24 caracteres.
 - Use `.env.example` como base para configurar o ambiente.
@@ -41,6 +60,12 @@ Para migrar os carros atuais para o banco:
 4. Clique em `Migrar estoque atual`.
 
 Tambem e possivel cadastrar um carro individual ou importar um lote JSON pelo mesmo painel.
+
+## Leads
+
+Os formularios usam `/api/leads` e salvam dados em Postgres quando `DATABASE_URL` estiver
+configurado. Sem banco em producao, o formulario abre WhatsApp como fallback para nao perder
+conversao.
 
 ## Seguranca
 

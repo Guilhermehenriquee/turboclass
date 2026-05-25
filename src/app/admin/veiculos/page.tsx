@@ -18,9 +18,9 @@ export default async function AdminVehiclesPage() {
           <TopBannerAd />
           <SiteHeader />
           <div className="admin-wrap">
-            <Link href="/minha-conta" className="back-link">
+            <Link href="/admin" className="back-link">
               <ArrowLeft size={17} aria-hidden="true" />
-              Minha conta
+              Admin
             </Link>
             <span className="hero-kicker">
               <ShieldCheck size={18} aria-hidden="true" />

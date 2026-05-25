@@ -7,6 +7,7 @@ import {
   CalendarCheck,
   CarFront,
   Gauge,
+  MessageCircle,
   ShieldCheck,
   Sparkles,
 } from "lucide-react";
@@ -17,15 +18,9 @@ import { TopBannerAd } from "@/components/top-banner-ad";
 import { VehicleCard } from "@/components/vehicle-card";
 import { formatBRL } from "@/lib/format";
 import { getInventory } from "@/lib/inventory-store";
-import { WHATSAPP_ANNOUNCE_URL } from "@/lib/links";
+import { WHATSAPP_SELL_URL } from "@/lib/links";
 
 export const revalidate = 3600;
-
-const stats = [
-  { label: "Projetos e turbos", value: "141+" },
-  { label: "Aprovacao media", value: "24h" },
-  { label: "Gearheads atendidos", value: "9,8k" },
-];
 
 const trustItems = [
   {
@@ -46,13 +41,20 @@ const trustItems = [
 ];
 
 const quickActions = [
-  { href: "/estoque", label: "Comprar carro", icon: CarFront },
-  { href: "#vender", label: "Vender meu carro", icon: Gauge },
-  { href: "#financiamento", label: "Simular financiamento", icon: Banknote },
+  { href: "/comprar", label: "Comprar carro", icon: CarFront },
+  { href: "/vender", label: "Vender meu carro", icon: Gauge },
+  { href: "/financiamento", label: "Simular financiamento", icon: Banknote },
 ];
 
 export default async function Home() {
-  const featured = (await getInventory()).slice(0, 3);
+  const vehicles = await getInventory();
+  const featured = vehicles.filter((vehicle) => vehicle.featuredOffer).slice(0, 3);
+  const availableCount = vehicles.filter((vehicle) => vehicle.status === "disponivel").length;
+  const stats = [
+    { label: "Veiculos cadastrados", value: String(vehicles.length) },
+    { label: "Anuncios disponiveis", value: String(availableCount) },
+    { label: "Atendimento", value: "Nacional" },
+  ];
 
   return (
     <>
@@ -76,19 +78,19 @@ export default async function Home() {
                 <Sparkles size={18} aria-hidden="true" />
                 Gearhead marketplace
               </span>
-              <h1>TurboClass</h1>
+              <h1>Carros turbo, preparados e projetos especiais em um so lugar.</h1>
               <p>
-                Veiculos turbo, swaps, setups bem montados e compra com a fluidez de uma plataforma
-                moderna para quem entende de carro.
+                Compre ou anuncie veiculos selecionados para quem busca performance, exclusividade
+                e procedencia, com contato direto pelo WhatsApp.
               </p>
 
               <div className="hero-buttons">
-                <Link href="/estoque" className="primary-button">
+                <Link href="/comprar" className="primary-button">
                   Ver estoque
                   <ArrowRight size={18} aria-hidden="true" />
                 </Link>
-                <Link href="#vender" className="light-button">
-                  Vender meu carro
+                <Link href="/vender" className="light-button">
+                  Anunciar meu carro
                 </Link>
               </div>
 
@@ -124,9 +126,9 @@ export default async function Home() {
             <span className="eyebrow">Estoque em destaque</span>
             <div>
               <h2>
-                Turbos prontos para acelerar
+                Carros que merecem mais do que um classificado comum
               </h2>
-              <Link href="/estoque" className="section-link">
+              <Link href="/comprar" className="section-link">
                 Ver todos
                 <ArrowRight size={17} aria-hidden="true" />
               </Link>
@@ -143,10 +145,10 @@ export default async function Home() {
         <section className="section difference-section" id="diferenciais">
           <div className="difference-copy">
             <span className="eyebrow">Nosso diferencial</span>
-            <h2>Compra com cara de boutique e alma de gearhead</h2>
+            <h2>A Webmotors dos carros preparados, com foco de nicho e vitrine premium</h2>
             <p>
-              A TurboClass une curadoria, preco competitivo e atendimento especialista para quem
-              quer torque, pressao e procedencia sem abrir mao de seguranca.
+              A TurboClass organiza anuncios de carros turbo, swaps, preparados, esportivos e
+              premium em uma experiencia feita para quem procura setup, informacao e contato rapido.
             </p>
             <div className="trust-grid">
               {trustItems.map((item) => {
@@ -178,26 +180,30 @@ export default async function Home() {
 
         <section className="sell-band" id="vender">
           <div>
-            <span className="eyebrow">Venda com curadoria</span>
-            <h2>Seu carro entra na vitrine certa</h2>
+            <span className="eyebrow">Venda para o publico certo</span>
+            <h2>Seu projeto nao nasceu para se perder em anuncio generico</h2>
             <p>
-              Avaliacao comercial, fotos, proposta de troca e exposicao em uma experiencia pensada
-              para compradores qualificados.
+              Anuncie turbo, swap, projeto especial ou premium em uma vitrine pensada para
+              compradores que entendem o valor do conjunto.
             </p>
           </div>
-          <Link href={WHATSAPP_ANNOUNCE_URL} className="primary-button" target="_blank" rel="noreferrer">
-            Falar com especialista
+          <Link href="/vender" className="primary-button">
+            Anunciar meu carro
             <BadgeCheck size={18} aria-hidden="true" />
+          </Link>
+          <Link href={WHATSAPP_SELL_URL} className="light-button" target="_blank" rel="noreferrer">
+            WhatsApp
+            <MessageCircle size={18} aria-hidden="true" />
           </Link>
         </section>
 
         <section className="section finance-section" id="financiamento">
           <div>
             <span className="eyebrow">Financiamento</span>
-            <h2>Simulacao direta, sem enrolacao</h2>
+            <h2>Simulacao direta, com atendimento personalizado</h2>
             <p>
-              Combine entrada, troca e prazo antes de visitar a loja. A proposta fica pronta para
-              comparacao e assinatura.
+              Informe o veiculo, entrada e prazo desejado para receber uma pre-analise orientativa.
+              A simulacao depende da avaliacao das instituicoes financeiras parceiras.
             </p>
           </div>
           <SearchPanel compact />
