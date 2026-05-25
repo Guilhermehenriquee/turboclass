@@ -1,8 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Gauge, MapPin, ShieldCheck } from "lucide-react";
-import type { Vehicle } from "@/data/inventory";
 import { formatBRL, formatMileage } from "@/lib/format";
+import type { Vehicle } from "@/lib/inventory-types";
 
 type VehicleCardProps = {
   vehicle: Vehicle;

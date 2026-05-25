@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowLeft, BadgeCheck, CarFront, KeyRound, Megaphone, ShieldCheck, UserRound } from "lucide-react";
+import { ArrowLeft, BadgeCheck, Database, KeyRound, Megaphone, ShieldCheck, UserRound } from "lucide-react";
 import { Footer } from "@/components/footer";
 import { SiteHeader } from "@/components/site-header";
 import { TopBannerAd } from "@/components/top-banner-ad";
@@ -15,10 +15,10 @@ const accountActions = [
     href: WHATSAPP_ANNOUNCE_URL,
   },
   {
-    icon: CarFront,
-    title: "Acompanhar interesse",
-    text: "Centralize propostas, conversas e proximos passos do seu anuncio.",
-    href: WHATSAPP_ANNOUNCE_URL,
+    icon: Database,
+    title: "Gerenciar estoque",
+    text: "Cadastre carros, importe lotes e migre anuncios para o banco.",
+    href: "/admin/veiculos",
   },
   {
     icon: ShieldCheck,
@@ -55,13 +55,13 @@ export default function MinhaContaPage() {
         <section className="section account-section">
           <div className="account-login">
             <KeyRound size={26} aria-hidden="true" />
-            <h2>Acesso em implantacao</h2>
+            <h2>Acesso operacional</h2>
             <p>
-              Enquanto o login completo nao entra no ar, o atendimento comercial ja recebe seu
-              anuncio pelo WhatsApp com o fluxo correto.
+              O painel de estoque usa token de administrador. O fluxo comercial segue pelo
+              WhatsApp para anuncios de clientes.
             </p>
-            <Link href={WHATSAPP_ANNOUNCE_URL} className="primary-button" target="_blank" rel="noreferrer">
-              Comecar pelo WhatsApp
+            <Link href="/admin/veiculos" className="primary-button">
+              Abrir painel
               <BadgeCheck size={18} aria-hidden="true" />
             </Link>
           </div>
@@ -70,7 +70,12 @@ export default function MinhaContaPage() {
             {accountActions.map((action) => {
               const Icon = action.icon;
               return (
-                <Link key={action.title} href={action.href} target="_blank" rel="noreferrer">
+                <Link
+                  key={action.title}
+                  href={action.href}
+                  target={action.href.startsWith("http") ? "_blank" : undefined}
+                  rel={action.href.startsWith("http") ? "noreferrer" : undefined}
+                >
                   <Icon size={22} aria-hidden="true" />
                   <strong>{action.title}</strong>
                   <span>{action.text}</span>

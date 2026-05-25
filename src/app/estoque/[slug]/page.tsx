@@ -7,6 +7,7 @@ import { SiteHeader } from "@/components/site-header";
 import { TopBannerAd } from "@/components/top-banner-ad";
 import { inventory } from "@/data/inventory";
 import { formatBRL, formatMileage } from "@/lib/format";
+import { getVehicleBySlug } from "@/lib/inventory-store";
 import { WHATSAPP_ANNOUNCE_URL } from "@/lib/links";
 
 export const revalidate = 300;
@@ -25,7 +26,7 @@ export function generateStaticParams() {
 
 export default async function VehicleDetailPage({ params }: VehicleDetailPageProps) {
   const { slug } = await params;
-  const vehicle = inventory.find((item) => item.slug === slug);
+  const vehicle = await getVehicleBySlug(slug);
 
   if (!vehicle) {
     notFound();

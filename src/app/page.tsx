@@ -15,8 +15,8 @@ import { SearchPanel } from "@/components/search-panel";
 import { SiteHeader } from "@/components/site-header";
 import { TopBannerAd } from "@/components/top-banner-ad";
 import { VehicleCard } from "@/components/vehicle-card";
-import { inventory } from "@/data/inventory";
 import { formatBRL } from "@/lib/format";
+import { getInventory } from "@/lib/inventory-store";
 import { WHATSAPP_ANNOUNCE_URL } from "@/lib/links";
 
 export const revalidate = 3600;
@@ -51,8 +51,8 @@ const quickActions = [
   { href: "#financiamento", label: "Simular financiamento", icon: Banknote },
 ];
 
-export default function Home() {
-  const featured = inventory.slice(0, 3);
+export default async function Home() {
+  const featured = (await getInventory()).slice(0, 3);
 
   return (
     <>

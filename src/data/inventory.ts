@@ -1,30 +1,7 @@
-export type VehicleTag = {
-  label: string;
-  variant: "modification" | "normal";
-};
+import { filterVehicleList } from "@/lib/inventory-filter";
+import type { InventoryFilters, Vehicle, VehicleTag } from "@/lib/inventory-types";
 
-export type Vehicle = {
-  id: string;
-  slug: string;
-  name: string;
-  make: string;
-  model: string;
-  condition: "novo" | "seminovo" | "usado";
-  featuredOffer: boolean;
-  turboSpec: string;
-  hasModifications: boolean;
-  year: number;
-  price: number;
-  monthlyPayment: number;
-  mileage: number;
-  transmission: string;
-  fuel: string;
-  location: string;
-  image: string;
-  badge: string;
-  turboBadge?: string;
-  tags: VehicleTag[];
-};
+export type { Vehicle, VehicleTag };
 
 export const inventory: Vehicle[] = [
   {
@@ -224,22 +201,6 @@ export const searchOptions = {
   locations: ["Todo o Brasil", "Sao Paulo", "Rio de Janeiro", "Minas Gerais", "Parana"],
 };
 
-export function filterInventory(params: Record<string, string | undefined>) {
-  const query = params.q?.trim().toLowerCase();
-  const body = params.body?.trim().toLowerCase();
-  const make = params.make?.trim().toLowerCase();
-  const condition = params.condition?.trim().toLowerCase();
-  const offer = params.offer?.trim().toLowerCase();
-
-  return inventory.filter((vehicle) => {
-    const searchable =
-      `${vehicle.name} ${vehicle.make} ${vehicle.model} ${vehicle.location} ${vehicle.turboSpec} ${vehicle.tags.map((tag) => tag.label).join(" ")}`.toLowerCase();
-    const matchesQuery = query ? searchable.includes(query) : true;
-    const matchesBody = body ? vehicle.model.toLowerCase().includes(body) : true;
-    const matchesMake = make ? vehicle.make.toLowerCase() === make : true;
-    const matchesCondition = condition ? vehicle.condition === condition : true;
-    const matchesOffer = offer ? vehicle.featuredOffer : true;
-
-    return matchesQuery && matchesBody && matchesMake && matchesCondition && matchesOffer;
-  });
+export function filterInventory(params: InventoryFilters) {
+  return filterVehicleList(inventory, params);
 }

@@ -5,7 +5,7 @@ import { SearchPanel } from "@/components/search-panel";
 import { SiteHeader } from "@/components/site-header";
 import { TopBannerAd } from "@/components/top-banner-ad";
 import { VehicleCard } from "@/components/vehicle-card";
-import { filterInventory, inventory } from "@/data/inventory";
+import { getFilteredInventory, getInventory } from "@/lib/inventory-store";
 
 export const revalidate = 300;
 
@@ -29,8 +29,10 @@ export default async function EstoquePage({ searchParams }: EstoquePageProps) {
     make: getSingleParam(params.make),
     condition: getSingleParam(params.condition),
     offer: getSingleParam(params.offer),
+    price: getSingleParam(params.price),
+    location: getSingleParam(params.location),
   };
-  const vehicles = filterInventory(filters);
+  const [vehicles, allVehicles] = await Promise.all([getFilteredInventory(filters), getInventory()]);
   const activeTab = filters.offer ? "ofertas" : filters.condition === "seminovo" ? "seminovos" : "comprar";
 
   return (
@@ -73,7 +75,7 @@ export default async function EstoquePage({ searchParams }: EstoquePageProps) {
           </div>
 
           <div className="vehicle-grid">
-            {(vehicles.length ? vehicles : inventory).map((vehicle, index) => (
+            {(vehicles.length ? vehicles : allVehicles).map((vehicle, index) => (
               <VehicleCard key={vehicle.id} vehicle={vehicle} priority={index === 0} />
             ))}
           </div>

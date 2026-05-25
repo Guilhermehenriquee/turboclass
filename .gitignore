@@ -5,6 +5,7 @@ dist/
 build/
 *.tsbuildinfo
 .next-dev.*.log
+.next-dev-*.pid
 .env*
 !.env.example
 npm-debug.log*
@@ -12,3 +13,4 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 turboclass/
+data/*.local.json
